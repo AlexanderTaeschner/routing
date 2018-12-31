@@ -1060,5 +1060,31 @@ namespace Itinero.Test.Osm
             var route2 = router.TryCalculate(profile, resolved1, resolved3);
             Assert.IsFalse(route2.IsError);
         }
+
+        [Test]
+        public void TestOnewayLoop()
+        {
+            var routerDb = new RouterDb();
+            using (var stream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream(
+                    "Itinero.Test.test_data.networks.oneway-loop.osm"))
+            {
+                var source = new OsmSharp.Streams.XmlOsmStreamSource(stream);
+                routerDb.LoadOsmData(source, Itinero.Osm.Vehicles.Vehicle.Car);
+            }
+
+            var profile = Vehicle.Car.Shortest();
+            //routerDb.AddContracted(profile);
+
+            var location1 = new Coordinate(-0.21955223220675274f, -0.5210161384621299f);
+            var location2 = new Coordinate(-0.21960114860694938f, -0.515860763795797f);
+            var router = new Router(routerDb);
+
+            var resolved1 = router.Resolve(profile, location1);
+            var resolved2 = router.Resolve(profile, location2);
+
+            var route = router.TryCalculate(profile, resolved1, resolved2);
+            var json = route.Value.ToGeoJson();
+            var instructions = route.Value.GenerateInstructions(routerDb);
+        }
     }
 }
